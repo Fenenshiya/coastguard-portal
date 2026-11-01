@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Check if request is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check user's assigned role in users collection
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    // Check if the user is an authorized staff member (lifeguard or admin)
+    function isStaff() {
+      return isAuthenticated() && (
+        getUserRole() == 'lifeguard' ||
+        getUserRole() == 'beach_authority_admin' ||
+        getUserRole() == 'super_admin'
+      );
+    }
+
+    // --- Users Collection ---
+    // Users can read their own profile; staff can look up roles
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isStaff());
+      allow write: if isAuthenticated() && (request.auth.uid == userId || (request.auth != null && getUserRole() == 'super_admin'));
+    }
+
+    // --- Incidents Collection ---
+    // Tourists (including unauthenticated visitors) can submit emergency and hazard reports
+    // Reading and updating is supported for authorized staff and public beach safety map
+    match /incidents/{incidentId} {
+      // Allow incident creation with required fields
+      allow create: if request.resource.data.trackingId is string 
+                    && request.resource.data.type is string 
+                    && request.resource.data.beachId is string;
+
+      // Allow staff and public safety portal to view live incidents
+      allow read: if true;
+
+      // Only authorized lifeguards and admins can update incident response status & resolution notes
+      allow update, delete: if isStaff();
+    }
+
+    // --- Beaches Collection ---
+    match /beaches/{beachId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // --- Hazard Zones Collection ---
+    match /hazardZones/{zoneId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // --- Safety Alerts Collection ---
+    match /alerts/{alertId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+  }
+}
