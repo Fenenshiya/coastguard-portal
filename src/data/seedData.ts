@@ -202,6 +202,40 @@ export const SEED_HAZARDS: HazardZone[] = [
     reportedBy: 'Miami Beach Ocean Rescue',
     createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
     updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'hz-miami-2',
+    beachId: 'south-beach-miami',
+    type: 'submerged_rocks',
+    title: 'South Pointe Jetty Rock Surge [Demo/Sample]',
+    description: '[Demo/Sample Location] Dangerous submerged rock boulders and strong rip surge along the South Pointe jetty. Swimming prohibited within 50m of the rock wall.',
+    severity: 'danger',
+    geometryType: 'polygon',
+    coordinates: [
+      { lat: 25.7665, lng: -80.1305 },
+      { lat: 25.7655, lng: -80.1295 },
+      { lat: 25.7645, lng: -80.1315 },
+      { lat: 25.7655, lng: -80.1325 }
+    ],
+    active: true,
+    reportedBy: 'South Pointe Patrol',
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'hz-waikiki-1',
+    beachId: 'waikiki-beach',
+    type: 'submerged_rocks',
+    title: 'Shallow Coral Heads & Sea Urchin Zone [Demo/Sample]',
+    description: '[Demo/Sample Location] Shallow reef flat with coral heads and long-spined sea urchins exposed during low tide. Exercise extreme caution outside the break.',
+    severity: 'warning',
+    geometryType: 'circle',
+    coordinates: [{ lat: 21.2742, lng: -157.8265 }],
+    circleRadiusMeters: 90,
+    active: true,
+    reportedBy: 'Honolulu Ocean Safety',
+    createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
+    updatedAt: new Date().toISOString(),
   }
 ];
 
@@ -260,9 +294,10 @@ export const SEED_FACILITIES: Facility[] = [
     beachId: 'south-beach-miami',
     type: 'lifeguard_tower',
     name: 'Ocean Rescue Tower - 10th St',
-    location: { lat: -25.7810, lng: -80.1285 },
+    location: { lat: 25.7810, lng: -80.1285 },
     status: 'open',
-    details: 'Classic pink-and-turquoise lifeguard tower with emergency beacon.'
+    details: 'Classic pink-and-turquoise lifeguard tower with emergency beacon, defib unit and public warning siren.',
+    operatingHours: '09:00 - 17:00'
   },
   {
     id: 'fac-miami-2',
@@ -271,7 +306,57 @@ export const SEED_FACILITIES: Facility[] = [
     name: 'Lummus Park Restroom Center',
     location: { lat: 25.7795, lng: -80.1305 },
     status: 'open',
-    details: 'Showers, foot wash stations, restrooms.'
+    details: 'Showers, foot wash stations, ADA accessible restrooms and drinking fountains.',
+    operatingHours: '06:00 - 20:00'
+  },
+  {
+    id: 'fac-miami-3',
+    beachId: 'south-beach-miami',
+    type: 'first_aid',
+    name: 'South Pointe First Aid Station [Demo/Sample]',
+    location: { lat: 25.7675, lng: -80.1315 },
+    status: 'open',
+    details: '[Demo/Sample Location] First aid assistance, jellyfish sting treatment, and wheelchair ramp access.',
+    operatingHours: '08:30 - 17:30'
+  },
+  // Waikiki Facilities
+  {
+    id: 'fac-waikiki-1',
+    beachId: 'waikiki-beach',
+    type: 'lifeguard_tower',
+    name: 'Kuhio Beach Lifeguard Tower 2B [Demo/Sample]',
+    location: { lat: 21.2758, lng: -157.8248 },
+    status: 'open',
+    details: '[Demo/Sample Location] Staffed ocean safety tower overlooking the protected swimming enclosure.',
+    operatingHours: '08:00 - 17:30'
+  },
+  {
+    id: 'fac-waikiki-2',
+    beachId: 'waikiki-beach',
+    type: 'first_aid',
+    name: 'Waikiki Ocean Safety Station [Demo/Sample]',
+    location: { lat: 21.2768, lng: -157.8262 },
+    status: 'open',
+    details: '[Demo/Sample Location] Emergency defibrillator, marine sting care and public safety advisories.',
+    operatingHours: '08:00 - 17:30'
+  },
+  {
+    id: 'fac-waikiki-3',
+    beachId: 'waikiki-beach',
+    type: 'restroom',
+    name: 'Kuhio Beach Public Amenities & Showers [Demo/Sample]',
+    location: { lat: 21.2774, lng: -157.8268 },
+    status: 'open',
+    details: '[Demo/Sample Location] Outdoor freshwater rinses, accessible restrooms and shade pavilions.'
+  },
+  {
+    id: 'fac-waikiki-4',
+    beachId: 'waikiki-beach',
+    type: 'parking',
+    name: 'Kapiolani Beach Parking [Demo/Sample]',
+    location: { lat: 21.2718, lng: -157.8208 },
+    status: 'open',
+    details: '[Demo/Sample Location] Public metered parking with EV charging spots.'
   }
 ];
 
@@ -395,6 +480,65 @@ export const SEED_INCIDENTS: IncidentReport[] = [
     ],
     createdAt: new Date(Date.now() - 35 * 60000).toISOString(),
     updatedAt: new Date(Date.now() - 35 * 60000).toISOString(),
+  },
+  {
+    id: 'inc-003',
+    beachId: 'south-beach-miami',
+    type: 'hazard_sighting',
+    priority: 'medium',
+    status: 'new',
+    location: {
+      lat: 25.7802,
+      lng: -80.1280,
+      accuracyMeters: 8,
+      landmarkDescription: 'Near 9th Street lifeguard stand water line'
+    },
+    description: '[Demo/Sample Location] Multiple Portuguese Man o\' War stingers spotted washed up along the tideline.',
+    photoUrls: [],
+    reporter: {
+      isAnonymous: true,
+      contactName: 'Beachgoer'
+    },
+    statusHistory: [
+      {
+        status: 'new',
+        changedByUid: 'system',
+        timestamp: new Date(Date.now() - 18 * 60000).toISOString(),
+        notes: 'Warning flags updated on tower.'
+      }
+    ],
+    createdAt: new Date(Date.now() - 18 * 60000).toISOString(),
+    updatedAt: new Date(Date.now() - 18 * 60000).toISOString(),
+  },
+  {
+    id: 'inc-004',
+    beachId: 'waikiki-beach',
+    type: 'first_aid_need',
+    priority: 'low',
+    status: 'resolved',
+    location: {
+      lat: 21.2762,
+      lng: -157.8252,
+      accuracyMeters: 5,
+      landmarkDescription: 'Kuhio Beach wall enclosure'
+    },
+    description: '[Demo/Sample Location] Minor coral abrasion treated by on-duty ocean safety officer.',
+    photoUrls: [],
+    reporter: {
+      isAnonymous: true,
+      contactName: 'Visitor'
+    },
+    statusHistory: [
+      {
+        status: 'resolved',
+        changedByUid: 'guard-waikiki-1',
+        changedByName: 'Officer Keanu M.',
+        timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
+        notes: 'First aid bandage applied. Swimmer returned to shore safely.'
+      }
+    ],
+    createdAt: new Date(Date.now() - 60 * 60000).toISOString(),
+    updatedAt: new Date(Date.now() - 45 * 60000).toISOString(),
   }
 ];
 

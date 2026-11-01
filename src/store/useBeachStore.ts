@@ -14,6 +14,7 @@ interface BeachState {
   authLoading: boolean;
   mapFilters: {
     showHazards: boolean;
+    showLifeguards: boolean;
     showFacilities: boolean;
     showIncidents: boolean;
     hazardTypeFilter: string; // 'all' or specific
@@ -24,7 +25,7 @@ interface BeachState {
   setActiveTab: (tab: 'dashboard' | 'map' | 'facilities' | 'reviews' | 'sos') => void;
   setCurrentUser: (user: AppUser | null) => void;
   setAuthLoading: (loading: boolean) => void;
-  toggleMapFilter: (key: 'showHazards' | 'showFacilities' | 'showIncidents') => void;
+  toggleMapFilter: (key: 'showHazards' | 'showLifeguards' | 'showFacilities' | 'showIncidents') => void;
   setHazardTypeFilter: (type: string) => void;
   refreshWeather: () => Promise<void>;
   getSelectedBeach: () => Beach | undefined;
@@ -40,6 +41,7 @@ export const useBeachStore = create<BeachState>((set, get) => ({
   authLoading: true,
   mapFilters: {
     showHazards: true,
+    showLifeguards: true,
     showFacilities: true,
     showIncidents: true,
     hazardTypeFilter: 'all',

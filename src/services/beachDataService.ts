@@ -68,16 +68,58 @@ class BeachDataService {
     }
     if (!localStorage.getItem(STORAGE_KEYS.HAZARDS)) {
       localStorage.setItem(STORAGE_KEYS.HAZARDS, JSON.stringify(SEED_HAZARDS));
+    } else {
+      // Ensure seed hazards are present if user had previous storage
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.HAZARDS) || '[]');
+        const ids = new Set(stored.map((h: any) => h.id));
+        const missing = SEED_HAZARDS.filter(h => !ids.has(h.id));
+        if (missing.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.HAZARDS, JSON.stringify([...stored, ...missing]));
+        }
+      } catch {
+        localStorage.setItem(STORAGE_KEYS.HAZARDS, JSON.stringify(SEED_HAZARDS));
+      }
     }
+
     if (!localStorage.getItem(STORAGE_KEYS.FACILITIES)) {
       localStorage.setItem(STORAGE_KEYS.FACILITIES, JSON.stringify(SEED_FACILITIES));
+    } else {
+      // Fix potential negative latitude typo and merge missing seed facilities
+      try {
+        let stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.FACILITIES) || '[]');
+        stored = stored.map((f: any) => {
+          if (f.id === 'fac-miami-1' && f.location?.lat < 0) {
+            return { ...f, location: { ...f.location, lat: Math.abs(f.location.lat) } };
+          }
+          return f;
+        });
+        const ids = new Set(stored.map((f: any) => f.id));
+        const missing = SEED_FACILITIES.filter(f => !ids.has(f.id));
+        localStorage.setItem(STORAGE_KEYS.FACILITIES, JSON.stringify([...stored, ...missing]));
+      } catch {
+        localStorage.setItem(STORAGE_KEYS.FACILITIES, JSON.stringify(SEED_FACILITIES));
+      }
     }
+
     if (!localStorage.getItem(STORAGE_KEYS.ALERTS)) {
       localStorage.setItem(STORAGE_KEYS.ALERTS, JSON.stringify(SEED_ALERTS));
     }
     if (!localStorage.getItem(STORAGE_KEYS.INCIDENTS)) {
       localStorage.setItem(STORAGE_KEYS.INCIDENTS, JSON.stringify(SEED_INCIDENTS));
+    } else {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.INCIDENTS) || '[]');
+        const ids = new Set(stored.map((i: any) => i.id));
+        const missing = SEED_INCIDENTS.filter(i => !ids.has(i.id));
+        if (missing.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.INCIDENTS, JSON.stringify([...stored, ...missing]));
+        }
+      } catch {
+        localStorage.setItem(STORAGE_KEYS.INCIDENTS, JSON.stringify(SEED_INCIDENTS));
+      }
     }
+
     if (!localStorage.getItem(STORAGE_KEYS.REVIEWS)) {
       localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(SEED_REVIEWS));
     }
@@ -161,11 +203,20 @@ class BeachDataService {
 
   subscribeToHazards(beachId: string, callback: (hazards: HazardZone[]) => void): () => void {
     if (isFirebaseConfigured && db) {
-      const q = query(collection(db, 'hazardZones'), where('beachId', '==', beachId), where('active', '==', true));
-      return onSnapshot(q, (snapshot) => {
-        const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as HazardZone));
-        callback(list);
-      }, () => callback(this.getHazards(beachId)));
+      try {
+        const q = query(collection(db, 'hazardZones'), where('beachId', '==', beachId), where('active', '==', true));
+        return onSnapshot(q, (snapshot) => {
+          const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as HazardZone));
+          const firestoreIds = new Set(list.map(h => h.id));
+          const local = this.getHazards(beachId).filter(h => !firestoreIds.has(h.id));
+          callback([...list, ...local]);
+        }, (err) => {
+          console.warn('[Firestore] Hazards subscription fallback to local cache:', err);
+          callback(this.getHazards(beachId));
+        });
+      } catch (err) {
+        console.warn('[Firestore] Error attaching hazards snapshot:', err);
+      }
     }
     return this.subscribe<HazardZone[]>(STORAGE_KEYS.HAZARDS, (hazards) => {
       callback(hazards.filter(h => h.beachId === beachId && h.active));
@@ -205,6 +256,22 @@ class BeachDataService {
   }
 
   subscribeToFacilities(beachId: string, callback: (facilities: Facility[]) => void): () => void {
+    if (isFirebaseConfigured && db) {
+      try {
+        const q = query(collection(db, 'facilities'), where('beachId', '==', beachId));
+        return onSnapshot(q, (snapshot) => {
+          const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Facility));
+          const firestoreIds = new Set(list.map(f => f.id));
+          const local = this.getFacilities(beachId).filter(f => !firestoreIds.has(f.id));
+          callback([...list, ...local]);
+        }, (err) => {
+          console.warn('[Firestore] Facilities subscription fallback to local cache:', err);
+          callback(this.getFacilities(beachId));
+        });
+      } catch (err) {
+        console.warn('[Firestore] Error attaching facilities snapshot:', err);
+      }
+    }
     return this.subscribe<Facility[]>(STORAGE_KEYS.FACILITIES, (facilities) => {
       callback(facilities.filter(f => f.beachId === beachId));
     });
